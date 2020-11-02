@@ -33,6 +33,19 @@ export async function fetchDecodedText(url: string) {
   return decoded.replace(encoding, newEncoding);
 }
 
+export async function writeXML(path: string, xml: string) {
+  const fileName = path + '.xml';
+  const filePath = path.split('/').slice(0, -1).join('/');
+
+  await mkdir(filePath, { recursive: true });
+  await writeTextFile(fileName, xml);
+}
+
+export async function getXML(baseUrl: string, path: string) {
+  const fileUrl = [baseUrl, path, 'planDeCompte.xml'].join('/');
+  return await fetchDecodedText(fileUrl);
+}
+
 export async function search(
   baseUrl: string,
   ...folders: string[]
@@ -43,17 +56,7 @@ export async function search(
   const links = getLinks(content).map(e => e.attributes.href);
 
   if (links.includes('planDeCompte.xml')) {
-    const xml = await fetchDecodedText(
-      [baseUrl, ...folders, 'planDeCompte.xml'].join('/'),
-    );
-
-    const file = folders.pop();
-    const path = folders.join('/');
-    await mkdir(path, { recursive: true });
-
-    const name = [path, file].join('/') + '.xml';
-    await writeTextFile(name, xml);
-    return name;
+    return folders.join('/');
   } else {
     return Promise.all(
       links

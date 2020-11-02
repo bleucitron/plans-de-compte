@@ -1,4 +1,11 @@
-import { fetchPage, getLinks, search, clean } from './utils.ts';
+import {
+  writeXML,
+  getXML,
+  fetchPage,
+  getLinks,
+  search,
+  clean,
+} from './utils.ts';
 
 const baseUrl = 'http://odm-budgetaire.org/composants/normes';
 const text = await fetchPage(baseUrl);
@@ -11,7 +18,14 @@ const years = elements
   .map(clean);
 
 for await (const year of years) {
-  const files = (await search(baseUrl, year)).flat(Infinity);
+  const paths = (await search(baseUrl, year)).flat(Infinity) as string[];
+
+  paths.forEach(async path => {
+    const xml = await getXML(baseUrl, path);
+
+    writeXML(path, xml);
+  });
+
   console.log(year, 'done');
-  console.log(files);
+  console.log(paths);
 }
