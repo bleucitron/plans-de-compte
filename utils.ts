@@ -5,6 +5,9 @@ import {
 
 const { mkdir, writeTextFile } = Deno;
 
+const encoding = 'ISO-8859-1';
+const newEncoding = 'UTF-8';
+
 export function clean(s: string) {
   return s.replace('/', '');
 }
@@ -18,9 +21,16 @@ export function getLinks(content: string) {
 
 export async function fetchPage(url: string) {
   const resp = await fetch(url);
-  const text = await resp.text();
+  return await resp.text();
+}
 
-  return text;
+export async function fetchDecodedText(url: string) {
+  const resp = await fetch(url);
+  const buffer = await resp.arrayBuffer();
+
+  const decoded = new TextDecoder(encoding).decode(buffer);
+
+  return decoded.replace(encoding, newEncoding);
 }
 
 export async function search(
@@ -29,11 +39,11 @@ export async function search(
 ): Promise<any> {
   const url = [baseUrl, ...folders].join('/');
 
-  const content = await fetchPage(url);
+  const content = await fetchDecodedText(url);
   const links = getLinks(content).map(e => e.attributes.href);
 
   if (links.includes('planDeCompte.xml')) {
-    const xml = await fetchPage(
+    const xml = await fetchDecodedText(
       [baseUrl, ...folders, 'planDeCompte.xml'].join('/'),
     );
 
